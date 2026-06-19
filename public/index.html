@@ -103,7 +103,7 @@
         }
 
         function sendDrawingEvent(x, y, control) {
-          const message = JSON.stringify({ x, y, control, type: 'paint' })
+          const message = JSON.stringify({ id: myId, x, y, control, type: 'paint' })
           ws.send(message)
         }
 
