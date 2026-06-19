@@ -46,6 +46,7 @@
       function main() {
         const host = location.origin.replace(/^http/, 'ws')
         const ws = new WebSocket(host + '/ws')
+        const myId = self.crypto.randomUUID().substr(0, 8)
 
         const form = document.querySelector('.form')
 
@@ -53,16 +54,21 @@
           e.preventDefault()
           const input = document.querySelector('.input')
           const text = input.value
-          ws.send(text)
+          ws.send(JSON.stringify({ id: myId, text }))
           input.value = ''
           input.focus()
         }
 
         ws.onmessage = function (msg) {
           const response = msg.data
+          const { id, text } = JSON.parse(msg.data)
           const messageList = document.querySelector('.messages')
           const li = document.createElement('li')
-          li.textContent = response
+          if (id === myId) {
+            li.textContent = `(${id})自分:` + text
+          } else {
+            li.textContent = id + ': ' + text
+          }
           messageList.appendChild(li)
         }
 
