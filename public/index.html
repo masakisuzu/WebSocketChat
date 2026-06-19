@@ -41,6 +41,18 @@
         <button class="submit">Send</button>
       </form>
     </div>
+
+    // カラーパレット
+    <div class="palette">
+      <button class="color-btn selected" data-color="#000000" style="background:#000000"></button>
+      <button class="color-btn" data-color="#e74c3c" style="background:#e74c3c"></button>
+      <button class="color-btn" data-color="#3498db" style="background:#3498db"></button>
+      <button class="color-btn" data-color="#2ecc71" style="background:#2ecc71"></button>
+      <button class="color-btn" data-color="#f39c12" style="background:#f39c12"></button>
+      <button class="color-btn" data-color="#9b59b6" style="background:#9b59b6"></button>
+      <button class="color-btn" data-color="#ffffff" style="background:#ffffff; border-color:#ccc"></button>
+    </div>
+
     <canvas
       id="canvas"
       width="600"
@@ -58,6 +70,16 @@
         const ctx = canvas.getContext('2d')
 
         let drawing = false
+        let currentColor = '#000000' // 選択中の色
+
+        // カラーボタンのクリック処理
+        document.querySelectorAll('.color-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.color-btn').forEach((b) => b.classList.remove('selected'))
+            btn.classList.add('selected')
+            currentColor = btn.dataset.color
+          })
+        })
 
         canvas.addEventListener('mousedown', (e) => {
           sendDrawingEvent(e.offsetX, e.offsetY, 'mousedown')
@@ -72,9 +94,9 @@
             sendDrawingEvent(e.offsetX, e.offsetY, 'mousemove')
           }
         })
-        function mousemove(x, y) {
+        function mousemove(x, y, color) { // ← color引数を追加
           if (drawing) {
-            draw(x, y, true)
+            draw(x, y, true, color)
           }
         }
 
@@ -93,7 +115,9 @@
           drawing = false
         }
 
-        function draw(x, y, dragging) {
+        function draw(x, y, dragging, color) { // color引数を追加
+          ctx.strokeStyle = color || '#000000' // 色を適用
+          ctx.lineWidth = 3
           if (dragging) {
             ctx.lineTo(x, y)
             ctx.stroke()
@@ -110,14 +134,14 @@
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data)
           if (msg.type === 'paint') {
-            const { x, y, control } = msg
+            const { x, y, control } = msg // color追加
             console.log({ control })
             if (control === 'mousedown') {
               mousedown()
             } else if (control === 'mouseup') {
               mouseup()
             } else if (control === 'mousemove') {
-              mousemove(x, y)
+              mousemove(x, y, color) // color渡す
             } else if (control === 'mouseout') {
               mouseout()
             }
