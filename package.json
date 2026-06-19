@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Express Hello World on Render",
   "main": "app.js",
-  "repository": "https://github.com/render-examples/express-hello-world",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/render-examples/express-hello-world.git"
+  },
   "author": "Render Developers",
   "license": "MIT",
   "private": false,
@@ -16,5 +19,9 @@
   },
   "engines": {
     "node": ">=14"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/render-examples/express-hello-world/issues"
+  },
+  "homepage": "https://github.com/render-examples/express-hello-world#readme"
 }
