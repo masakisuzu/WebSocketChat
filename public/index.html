@@ -31,6 +31,44 @@
         background: #eee;
         cursor: pointer;
       }
+      .palette {
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        align-items: center;
+      }
+      .color-btn {
+        width: 64px;   /* ← ここで色ボタンのサイズを指定 */
+        height: 64px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        cursor: pointer;
+      }
+      .color-btn.selected {
+        border-color: #333;
+        outline: 2px solid #aaa;
+      }
+      .size-palette {
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        align-items: center;
+      }
+      .size-btn {
+        width: 64px;   /* ← ここで太さボタンのサイズを指定 */
+        height: 64px;
+        border-radius: 8px;
+        border: 3px solid transparent;
+        background: #eee;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .size-btn.selected {
+        border-color: #333;
+        outline: 2px solid #aaa;
+      }
     </style>
   </head>
   <body>
@@ -52,6 +90,13 @@
       <button class="color-btn" data-color="#ffffff" style="background:#ffffff; border-color:#ccc"></button>
     </div>
 
+    <div class="size-palette">
+      <button class="size-btn selected" data-size="3">細</button>
+      <button class="size-btn" data-size="8">中</button>
+      <button class="size-btn" data-size="16">太</button>
+      <button class="size-btn" data-size="32">極太</button>
+    </div>
+
     <canvas
       id="canvas"
       width="600"
@@ -69,14 +114,23 @@
         const ctx = canvas.getContext('2d')
 
         let drawing = false
-        let currentColor = '#000000' // 選択中の色
+        let currentColor = '#000000'
+        let currentSize = 3  // ← 選択中の太さ
 
-        // カラーボタンのクリック処理
         document.querySelectorAll('.color-btn').forEach((btn) => {
           btn.addEventListener('click', () => {
             document.querySelectorAll('.color-btn').forEach((b) => b.classList.remove('selected'))
             btn.classList.add('selected')
             currentColor = btn.dataset.color
+          })
+        })
+
+        // 太さボタンのクリック処理（色ボタンとほぼ同じ仕組み）
+        document.querySelectorAll('.size-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.size-btn').forEach((b) => b.classList.remove('selected'))
+            btn.classList.add('selected')
+            currentSize = Number(btn.dataset.size)  // ← data-sizeを数値として取得
           })
         })
 
@@ -93,9 +147,9 @@
             sendDrawingEvent(e.offsetX, e.offsetY, 'mousemove')
           }
         })
-        function mousemove(x, y, color) { // ← color引数を追加
+        function mousemove(x, y, color, size) {
           if (drawing) {
-            draw(x, y, true, color)
+            draw(x, y, true, color, size)
           }
         }
 
@@ -114,9 +168,10 @@
           drawing = false
         }
 
-        function draw(x, y, dragging, color) { // color引数を追加
-          ctx.strokeStyle = color || '#000000' // 色を適用
-          ctx.lineWidth = 3
+        function draw(x, y, dragging, color, size) {
+          ctx.strokeStyle = color || '#000000'
+          ctx.lineWidth = size || 3  // ← sizeを適用
+          ctx.lineCap = 'round'      // ← 線の端を丸くすると綺麗
           if (dragging) {
             ctx.lineTo(x, y)
             ctx.stroke()
@@ -126,21 +181,24 @@
         }
 
         function sendDrawingEvent(x, y, control) {
-          const message = JSON.stringify({ id: myId, x, y, control, type: 'paint', color: currentColor })
+          const message = JSON.stringify({
+            id: myId, x, y, control, type: 'paint',
+            color: currentColor,
+            size: currentSize  // ← sizeも送信
+          })
           ws.send(message)
         }
 
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data)
           if (msg.type === 'paint') {
-            const { x, y, control, color } = msg // color追加
-            console.log({ control })
+            const { x, y, control, color, size } = msg  // ← sizeも受け取る
             if (control === 'mousedown') {
               mousedown()
             } else if (control === 'mouseup') {
               mouseup()
             } else if (control === 'mousemove') {
-              mousemove(x, y, color) // color渡す
+              mousemove(x, y, color, size)  // ← sizeも渡す
             } else if (control === 'mouseout') {
               mouseout()
             }
@@ -159,7 +217,6 @@
         }
 
         const form = document.querySelector('.form')
-
         form.onsubmit = function (e) {
           e.preventDefault()
           const input = document.querySelector('.input')
