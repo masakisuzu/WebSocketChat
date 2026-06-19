@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: express-hello-world
+    name: express-websocket-chat
     runtime: node
     plan: free
-    buildCommand: yarn install --frozen-lockfile
-    startCommand: node app.js
+    buildCommand: npm ci
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
