@@ -42,7 +42,6 @@
       </form>
     </div>
 
-    // カラーパレット
     <div class="palette">
       <button class="color-btn selected" data-color="#000000" style="background:#000000"></button>
       <button class="color-btn" data-color="#e74c3c" style="background:#e74c3c"></button>
@@ -127,14 +126,14 @@
         }
 
         function sendDrawingEvent(x, y, control) {
-          const message = JSON.stringify({ id: myId, x, y, control, type: 'paint' })
+          const message = JSON.stringify({ id: myId, x, y, control, type: 'paint', color: currentColor })
           ws.send(message)
         }
 
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data)
           if (msg.type === 'paint') {
-            const { x, y, control } = msg // color追加
+            const { x, y, control, color } = msg // color追加
             console.log({ control })
             if (control === 'mousedown') {
               mousedown()
